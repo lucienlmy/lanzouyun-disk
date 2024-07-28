@@ -1,4 +1,4 @@
-@import "~antd/dist/antd.less";
+//@import "~antd/dist/antd.less";
 
 @primary-color: #4C89F7;
 
@@ -25,15 +25,25 @@
 @modal-header-border-width: 0;
 @modal-footer-border-width: 0;
 
-.ant-modal-close-x {
-  width: 43px;
-  height: 43px;
-  line-height: 43px;
+html, body {
+  margin: 0;
+  overflow: hidden;
 }
 
+//.ant-modal-close-x {
+//  width: 43px;
+//  height: 43px;
+//  line-height: 43px;
+//}
+
 // button
+
 .ant-btn.ant-btn-text.ant-btn-icon-only {
   transition: background-color 0.3s;
+  font-size: 16px;
+}
+.ant-btn .ant-btn-icon {
+  display: inline-flex;
 }
 
 // tabs
@@ -54,13 +64,6 @@
 
 .ant-table-row {
   height: 36px;
-}
-
-.spaceBetween {
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  justify-content: space-between;
 }
 
 .handle {

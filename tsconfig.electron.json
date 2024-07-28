@@ -1,7 +1,7 @@
 {
   "extends": "./tsconfig.json",
   "compilerOptions": {
-    "outDir": "app/build",
+    "outDir": "app/build/main",
     "noEmit": false,
     "module": "CommonJS",
     "lib": [

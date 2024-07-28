@@ -1,11 +1,11 @@
-import React, {CSSProperties} from 'react'
+import React, {CSSProperties, PropsWithChildren} from 'react'
 import './Bar.css'
 
 export interface BarProps {
   style?: CSSProperties
 }
 
-export const MyBar: React.FC<BarProps> = props => {
+export const MyBar: React.FC<PropsWithChildren<BarProps>> = props => {
   return (
     <div className='bar' style={props.style}>
       {props.children}

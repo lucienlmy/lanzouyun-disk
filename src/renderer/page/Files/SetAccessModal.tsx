@@ -6,7 +6,7 @@ import {asyncMap} from '../../../common/util'
 import {fileDetail, folderDetail} from '../../../common/core/detail'
 
 interface SetAccessModalProps {
-  visible: boolean
+  open: boolean
   rows: LsFiles[]
   onCancel: ModalProps['onCancel']
   onOk: (data: AccessData[]) => Promise<void>
@@ -15,7 +15,7 @@ interface SetAccessModalProps {
 export function SetAccessModal(props: SetAccessModalProps) {
   const [loading, setLoading] = useState(false)
 
-  const visible = props.visible
+  const open = props.open
   const [form] = Form.useForm<
     Pick<AccessData, 'shows' | 'shownames'> & {
       _setAll: boolean
@@ -25,7 +25,7 @@ export function SetAccessModal(props: SetAccessModalProps) {
 
   return (
     <Modal
-      visible={visible}
+      open={open}
       title={'批量设置访问密码'}
       onCancel={props.onCancel}
       afterClose={() => form.resetFields()}

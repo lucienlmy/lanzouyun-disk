@@ -17,10 +17,10 @@ const iconMap: {[key: string]: IconName} = {
 export type IconProps = {
   iconName: IconName
   defaultIcon?: IconName
-  gutter?: number
-} & JSX.IntrinsicElements['svg']
+  // gutter?: number
+} & React.JSX.IntrinsicElements['svg']
 
-export const MyIcon: React.FC<IconProps> = ({iconName, className = '', defaultIcon, gutter, style, ...props}) => {
+export const MyIcon: React.FC<IconProps> = ({iconName, className = '', defaultIcon, style, ...props}) => {
   iconName = iconMap[iconName] ?? iconName
   const name = useMemo(() => {
     if (!icons.includes(iconName)) {
@@ -30,17 +30,12 @@ export const MyIcon: React.FC<IconProps> = ({iconName, className = '', defaultIc
   }, [defaultIcon, iconName])
 
   return (
-    <svg
-      className={`icon ${name === 'loading' ? name : ''} ${className}`}
-      style={{marginRight: gutter, ...style}}
-      aria-hidden='true'
-      {...props}
-    >
+    <svg className={`icon ${name === 'loading' ? name : ''} ${className}`} style={style} aria-hidden='true' {...props}>
       <use href={`#icon-${name}`} />
     </svg>
   )
 }
 
-MyIcon.defaultProps = {
-  gutter: 5,
-}
+// MyIcon.defaultProps = {
+//   gutter: 0,
+// }

@@ -2,19 +2,18 @@ import {EventEmitter} from 'events'
 import path from 'path'
 import {autorun, makeObservable, observable} from 'mobx'
 import {persist} from 'mobx-persist'
-import type Request from 'got/dist/source/core'
-import type {Progress} from 'got/dist/source/core'
+import type {Progress, Request} from 'got'
 import throttle from 'lodash.throttle'
+import * as stream from 'stream'
+import {pipeline} from 'stream/promises'
+import {message, Modal} from 'antd'
 
 import Task, {TaskStatus} from './AbstractTask'
 import {byteToSize, sizeToByte} from '../../common/util'
 import {config} from './Config'
-import {message, Modal} from 'antd'
 import {calculate} from './Calculate'
-import {pipeline} from 'stream/promises'
 import {UploadSubtask, UploadTask} from './task/UploadTask'
 import {finish} from './Finish'
-import * as stream from 'stream'
 
 export interface Upload {
   on(event: 'finish', listener: (info: UploadTask) => void): this

@@ -8,6 +8,13 @@ import {MyIcon} from '../../component/Icon'
 interface SelectFolderModalProps {
   currentFolder: FolderId
   onCancel?: () => void
+  /**
+   * level: 要移动的文件夹处于第几层级
+   *  - 全部文件: 0
+   *    - 测试: 1
+   *      - 一层: 2
+   *    - 测试2: 1
+   */
   onOk: (folderId: FolderId, level: number) => Promise<void>
 }
 
@@ -37,9 +44,9 @@ function updateTreeData(list: DataNode[], key: React.Key, children: DataNode[]):
 export function SelectFolderModal(props: SelectFolderModalProps) {
   const [data, setData] = useState<DataNode[]>([{key: -1, title: '全部文件'}])
   const [confirmLoading, setConfirmLoading] = useState(false)
-  const [select, setSelect] = useState<EventDataNode>(null)
+  const [select, setSelect] = useState<EventDataNode<any>>(null)
 
-  const ls = useCallback(async (id = -1, isEndLeaf = false) => {
+  const ls = useCallback(async (id: FolderId = -1, isEndLeaf = false) => {
     const {text} = await lsDir(id)
     setData(prev =>
       updateTreeData(
@@ -69,7 +76,7 @@ export function SelectFolderModal(props: SelectFolderModalProps) {
   return (
     <Modal
       width={600}
-      visible={visible}
+      open={visible}
       title={'选择文件夹'}
       confirmLoading={confirmLoading}
       okText={
@@ -105,7 +112,7 @@ export function SelectFolderModal(props: SelectFolderModalProps) {
         icon={<MyIcon iconName={'folder'} />}
         loadData={async treeNode => {
           const isEndLeaf = treeNode.pos.split('-').length >= 5
-          await ls(treeNode.key, isEndLeaf)
+          await ls(treeNode.key as FolderId, isEndLeaf)
         }}
         treeData={data}
       />

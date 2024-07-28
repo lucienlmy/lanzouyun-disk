@@ -6,12 +6,14 @@ import project from '../../project.config'
 export const login = async () => {
   let parent = getCurrentWindow()
   const bounds = parent.getBounds()
+  const uag = parent.webContents.getUserAgent()
+
   let win = new BrowserWindow({...bounds, title: '登录'})
   parent.hide()
 
   let winBounds = null
-  win.on('moved', event => (winBounds = event.sender.getBounds()))
-  win.on('resized', event => (winBounds = event.sender.getBounds()))
+  win.on('moved', event => event.sender && (winBounds = event.sender.getBounds()))
+  win.on('resized', event => event.sender && (winBounds = event.sender.getBounds()))
   win.on('closed', () => {
     winBounds && parent.setBounds(winBounds)
     parent.show()
@@ -22,28 +24,34 @@ export const login = async () => {
     winBounds = null
   })
 
-  await win.loadURL(project.rootUrl + project.page.login)
+  await win.loadURL(project.rootUrl + project.page.login, {userAgent: uag})
   await win.webContents.insertCSS('*{visibility:hidden}.p1{visibility:visible}.p1 *{visibility:inherit}')
-  const redirectUrl = win.webContents.getURL()
-  const redirectOrigin = new URL(redirectUrl).origin
 
   // 检查 cookies 并更新 config
-  const checkCookies = async (electronCookies: Electron.Cookies) => {
-    const cookies = await electronCookies.get({})
+  const checkCookies = async (webContents: Electron.WebContents) => {
+    const cookies = await webContents.session.cookies.get({})
     const cookie = cookies.find(value => value.name === 'phpdisk_info')
     if (!cookie) return false
 
-    config.update({lanzouUrl: redirectOrigin, cookies: cookies.map(value => ({...value}))})
+    // ** 蓝奏云的 cookie 参数 uag 是根据登录窗口的 user-agent 来生成的，防止模拟请求，
+    // ** 所以各窗口和请求工具的 user-agent 要保持一致
+    const userAgent = webContents.getUserAgent()
+    const origin = new URL(webContents.getURL()).origin
+    config.update({
+      userAgent,
+      lanzouUrl: origin,
+      cookies: cookies.map(value => ({...value})),
+    })
     win.close()
     return true
   }
 
-  if (await checkCookies(win.webContents.session.cookies)) {
+  if (await checkCookies(win.webContents)) {
     return
   }
 
-  win.webContents.session.webRequest.onResponseStarted({urls: [redirectOrigin + project.page.home]}, details =>
-    checkCookies(details.webContents.session.cookies)
+  win.webContents.session.webRequest.onResponseStarted({urls: [`*://*${project.page.home}`]}, details =>
+    checkCookies(details.webContents)
   )
 }
 

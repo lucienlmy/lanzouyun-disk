@@ -39,7 +39,7 @@ export default function MergePage() {
               try {
                 const output = path.join(values.dir, values.name)
                 if (fs.existsSync(output)) {
-                  return message.warn(
+                  return message.warning(
                     <span>
                       文件已存在
                       <Button type={'link'} size={'small'} onClick={() => shell.openPath(output)}>

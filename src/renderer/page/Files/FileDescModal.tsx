@@ -18,7 +18,7 @@ export function FileDescModal(props: {fileId: FileId; onCancel: ModalProps['onCa
 
   return (
     <Modal
-      visible={visible}
+      open={visible}
       title={'添加文件描述'}
       onCancel={props.onCancel}
       okText={'修改'}

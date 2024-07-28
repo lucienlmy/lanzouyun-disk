@@ -42,12 +42,13 @@ export interface LsResult {
 export async function ls(folder_id: FolderId = -1, folderFirst = true): Promise<LsResult> {
   const [res1, res2] = await Promise.all([lsDir(folder_id), lsFile(folder_id)])
 
-  const folders = res1.text.map(value => ({
-    name: value.name,
-    type: URLType.folder,
-    id: `${value.fol_id}`,
-    source: value,
-  }))
+  const folders =
+    res1.text?.map(value => ({
+      name: value.name,
+      type: URLType.folder,
+      id: `${value.fol_id}`,
+      source: value,
+    })) || []
   const files = res2.map(value => ({
     name: value.name_all,
     type: URLType.file,

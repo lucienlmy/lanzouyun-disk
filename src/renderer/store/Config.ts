@@ -32,9 +32,9 @@ export class Config {
   // *** 本地配置 start ***
   splitSize = '100m'
 
-  // todo: 升级 electron 版本后拿最新的 UA
+  // cookie 和 uag 匹配即可请求成功
   @persist userAgent =
-    'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/100.0.4896.143 Safari/537.36'
+    'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/112.0.5615.204 Safari/537.36'
 
   // 是否默认此地址为下载路径
   @persist setDefaultDownloadDir = false

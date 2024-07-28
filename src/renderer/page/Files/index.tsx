@@ -1,5 +1,7 @@
-import React, {useCallback, useEffect, useMemo, useState} from 'react'
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react'
 import electron from 'electron'
+import debounce from 'lodash.debounce'
+
 import {MyHeader} from '../../component/Header'
 import {MyIcon} from '../../component/Icon'
 import {asyncMap, delay, isFile, parseShare, sizeToByte} from '../../../common/util'
@@ -13,7 +15,6 @@ import {download, upload} from '../../store'
 import {fileDetail, folderDetail, share} from '../../../common/core/detail'
 import {editFile, editFileInfo, editFolder, setAccess} from '../../../common/core/edit'
 import {countTree, mv} from '../../../common/core/mv'
-import debounce from 'lodash.debounce'
 
 import './Files.css'
 
@@ -22,6 +23,7 @@ import {
   Button,
   Checkbox,
   Col,
+  Divider,
   Dropdown,
   Form,
   Input,
@@ -85,6 +87,25 @@ export default function Files() {
   )
 
   const currentFolder = crumbs[crumbs.length - 1]
+
+  const move = useRef<LsFiles[]>([])
+  // 拖放的方式移动文件
+  const dragFiles = (files: LsFiles[], folder: Pick<LsFiles, 'id' | 'name' | 'type'>, level: number) => {
+    if (files?.length && folder.type === URLType.folder) {
+      Modal.confirm({
+        title: '移动',
+        content: `确定将 “${files[0].name} ”${files.length > 1 ? `等（${files.length}）个文件` : ''}移动到 “${
+          folder.name
+        }” 目录？`,
+        onOk: async () => {
+          await mv(files, folder.id, level)
+          message.success('移动成功')
+          setSelectedRows([])
+          listFile(currentFolder.folderid)
+        },
+      })
+    }
+  }
 
   const listFile = useCallback(
     async (folder_id: FolderId) => {
@@ -169,15 +190,18 @@ export default function Files() {
 
   return (
     <MyScrollView
-      onDragEnter={() => {
+      onDragEnter={event => {
+        event.preventDefault()
+
+        // 移动文件，不展示上传文件的 layer
+        if (move.current) return
+
         if (!uploadMaskVisible) {
           setUploadMaskVisible(true)
         }
       }}
-      onDragOver={event => {
-        event.preventDefault()
-        event.stopPropagation()
-      }}
+      onDragOver={event => event.preventDefault()}
+      onDragLeave={event => event.preventDefault()}
       HeaderComponent={
         <>
           <MyHeader
@@ -201,10 +225,19 @@ export default function Files() {
               >
                 <Button icon={<CloudUploadOutlined />}>上传</Button>
               </Upload>
+              <Divider type='vertical' />
               <Button onClick={() => setVisible(true)}>新建文件夹</Button>
 
               {!selectedRows.length ? (
                 <>
+                  <Button
+                    title={'可以将链接文件上传到蓝奏云备份'}
+                    type={'primary'}
+                    onClick={() => setSyncVisible(true)}
+                  >
+                    新建同步任务
+                  </Button>
+                  <Divider type='vertical' />
                   <Button
                     type={'primary'}
                     loading={loading['oneClickShare']}
@@ -215,13 +248,6 @@ export default function Files() {
                     }}
                   >
                     一键分享
-                  </Button>
-                  <Button
-                    title={'可以将链接文件上传到蓝奏云备份'}
-                    type={'primary'}
-                    onClick={async () => setSyncVisible(true)}
-                  >
-                    新建同步任务
                   </Button>
                 </>
               ) : (
@@ -258,6 +284,7 @@ export default function Files() {
                   >
                     下载 ({selectedRows.length})
                   </Button>
+                  <Divider type='vertical' />
                   <Button
                     title={'时间跟文件数量有关，不建议经常使用'}
                     icon={<MyIcon iconName={'move'} />}
@@ -289,9 +316,21 @@ export default function Files() {
           </MyHeader>
           <MyBar>
             <Breadcrumb separator={<RightOutlined />}>
-              {crumbs.map(value => (
+              {crumbs.map((value, index) => (
                 <Breadcrumb.Item key={value.folderid} href={'#'} onClick={() => lsNextFolder(value.folderid)}>
-                  {value.name}
+                  <span
+                    onDrop={event => {
+                      event.preventDefault()
+                      if (crumbs.length - 1 === index) return
+                      dragFiles(
+                        move.current,
+                        {id: value.folderid as string, name: value.name, type: URLType.folder},
+                        index
+                      )
+                    }}
+                  >
+                    {value.name}
+                  </span>
                 </Breadcrumb.Item>
               ))}
             </Breadcrumb>
@@ -364,10 +403,23 @@ export default function Files() {
                   }
                   trigger={['contextMenu']}
                 >
-                  <div className='spaceBetween'>
+                  <div className='flex flex-row items-center justify-between'>
                     <a
                       href={'#'}
+                      className={'cursor-pointer select-none'}
                       {...('folder_des' in item.source ? {title: item.source.folder_des} : {})}
+                      onDragStart={event => {
+                        event.stopPropagation()
+                        move.current = selectedRows?.length ? selectedRows : [item]
+                      }}
+                      onDragEnd={event => {
+                        move.current = []
+                      }}
+                      onDrop={event => {
+                        event.preventDefault()
+                        const level = crumbs.length - 1
+                        dragFiles(move.current, item, level)
+                      }}
                       onClick={event => {
                         event.stopPropagation()
                         if (item.type === URLType.folder) {
@@ -376,16 +428,14 @@ export default function Files() {
                       }}
                     >
                       {item.type === URLType.folder ? (
-                        <MyIcon iconName={'folder'} />
+                        <MyIcon iconName={'folder'} className={'mr-1'} />
                       ) : (
-                        <MyIcon iconName={item.icon} defaultIcon={'file'} />
+                        <MyIcon iconName={item.icon} defaultIcon={'file'} className={'mr-1'} />
                       )}
                       <Space size={3}>
                         {item.name}
-                        {`${item.source.onof}` === '1' && <MyIcon iconName={'lock'} gutter={0} />}
-                        {`${(item.source as FileInfo).is_des}` === '1' && (
-                          <MyIcon iconName={'description'} gutter={0} />
-                        )}
+                        {`${item.source.onof}` === '1' && <MyIcon iconName={'lock'} />}
+                        {`${(item.source as FileInfo).is_des}` === '1' && <MyIcon iconName={'description'} />}
                       </Space>
                     </a>
                     <div className='handle' onClick={event => event.stopPropagation()}>
@@ -459,7 +509,7 @@ export default function Files() {
               }
               return 0
             },
-            render: (_, item) => item.size,
+            render: (_, item) => item.size ?? '-',
           },
           {title: '时间', width: 120, render: (_, item) => ('id' in item ? item.time : '')},
           {title: '下载', width: 120, render: (_, item) => ('id' in item ? item.downs : '')},
@@ -469,7 +519,7 @@ export default function Files() {
       {/*创建 / 修改 文件夹*/}
       <Modal
         title={folderForm.getFieldValue('folder_id') ? '编辑文件夹' : '新建文件夹'}
-        visible={visible}
+        open={visible}
         onCancel={() => setVisible(false)}
         onOk={() => folderForm.submit()}
         afterClose={() => folderForm.resetFields()}
@@ -507,7 +557,7 @@ export default function Files() {
 
       <Modal
         title={'编辑文件'}
-        visible={fileModalVisible}
+        open={fileModalVisible}
         onCancel={() => setFileModalVisible(false)}
         okText={'保存'}
         confirmLoading={loading['saveFile']}
@@ -567,7 +617,7 @@ export default function Files() {
       />
 
       <SetAccessModal
-        visible={accessVisible}
+        open={accessVisible}
         rows={selectedRows}
         onCancel={() => setAccessVisible(false)}
         onOk={async rows => {
@@ -610,12 +660,13 @@ export default function Files() {
               event.stopPropagation()
             }}
             onDrop={async event => {
+              event.preventDefault() // 阻止文件自动打开
               setUploadMaskVisible(false)
 
               if (event.dataTransfer.files.length) {
                 await upload.addTasks(
                   Array.from(event.dataTransfer.files).map(
-                    file => new UploadTask({folderId: currentFolder.folderid, file})
+                    (file: any) => new UploadTask({folderId: currentFolder.folderid, file})
                   )
                 )
                 message.success('上传中...')
@@ -626,7 +677,7 @@ export default function Files() {
       )}
 
       <SyncModal
-        visible={syncVisible}
+        open={syncVisible}
         onCancel={() => setSyncVisible(false)}
         onOk={async data => {
           const dir = await getDownloadDir()
@@ -655,7 +706,7 @@ interface SyncForm {
 }
 
 interface SyncModalProps {
-  visible: boolean
+  open: boolean
   onOk: (data: SyncForm) => void
   onCancel: () => void
 }
@@ -670,7 +721,7 @@ function SyncModal(props: SyncModalProps) {
 
   return (
     <Modal
-      visible={props.visible}
+      open={props.open}
       title={'新建同步任务'}
       width={650}
       onCancel={props.onCancel}

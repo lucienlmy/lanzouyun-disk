@@ -2,8 +2,8 @@ import * as cheerio from 'cheerio'
 import prettier from 'prettier/standalone'
 import parserBabel from 'prettier/parser-babel'
 import queryString from 'querystring'
-import type {Method} from 'got/dist/source/core/options'
-import {CheerioAPI} from 'cheerio/lib/load'
+import type {Method} from 'got'
+import type {CheerioAPI} from 'cheerio'
 
 interface AjaxData {
   type: Method

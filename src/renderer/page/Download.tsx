@@ -182,7 +182,7 @@ function _BatchTask(_, ref) {
   return (
     <Modal
       destroyOnClose
-      visible={visible}
+      open={visible}
       width={650}
       title={'批量下载任务'}
       okText={'下载'}

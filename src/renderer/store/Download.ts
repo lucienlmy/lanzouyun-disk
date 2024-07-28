@@ -1,14 +1,14 @@
 import {EventEmitter} from 'events'
 import {autorun, makeObservable, observable} from 'mobx'
 import {persist} from 'mobx-persist'
-import Task, {TaskStatus} from './AbstractTask'
-import {delay} from '../../common/util'
-
 import fs from 'fs-extra'
-import {Progress} from 'got/dist/source/core'
+import type {Progress} from 'got'
 import {pipeline} from 'stream/promises'
 import throttle from 'lodash.throttle'
 import {message} from 'antd'
+
+import Task, {TaskStatus} from './AbstractTask'
+import {delay} from '../../common/util'
 import {config} from './Config'
 import {getDownloadDir} from '../page/Setting'
 import {DownloadSubTask, DownloadTask} from './task/DownloadTask'

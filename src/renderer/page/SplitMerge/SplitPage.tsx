@@ -150,7 +150,7 @@ export default function SplitPage() {
                       getValueProps={value => ({value: value ? value.split('.') : []})}
                       getValueFromEvent={event => (event?.length ? event.slice(-2).join('.') : '')}
                     >
-                      <Select showArrow mode={'multiple'} onChange={updateInfo}>
+                      <Select mode={'multiple'} onChange={updateInfo}>
                         <Select.OptGroup label={'无文件校验'}>
                           {projectConfig.safeSuffixList.map((value, index) => (
                             <Select.Option key={`${value}-${index}`} value={value}>
