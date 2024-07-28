@@ -1,10 +1,11 @@
 import React, {useCallback, useState} from 'react'
 import {Button, Col, Form, Input, message, Row, Table, Upload} from 'antd'
 import {InboxOutlined} from '@ant-design/icons'
-import {MyScrollView} from '../../component/ScrollView'
 import path from 'path'
-import electronApi from '../../electronApi'
 import fs from 'fs-extra'
+import {dialog, shell} from '@electron/remote'
+
+import {MyScrollView} from '../../component/ScrollView'
 import {MyIcon} from '../../component/Icon'
 import {asyncFilter} from '../../../common/util'
 import {merge} from '../../../common/merge'
@@ -41,7 +42,7 @@ export default function MergePage() {
                   return message.warn(
                     <span>
                       文件已存在
-                      <Button type={'link'} size={'small'} onClick={() => electronApi.openPath(output)}>
+                      <Button type={'link'} size={'small'} onClick={() => shell.openPath(output)}>
                         打开文件
                       </Button>
                     </span>
@@ -57,11 +58,11 @@ export default function MergePage() {
                 message.success(
                   <span>
                     合并成功
-                    <Button type={'link'} size={'small'} onClick={() => electronApi.showItemInFolder(output)}>
+                    <Button type={'link'} size={'small'} onClick={() => shell.showItemInFolder(output)}>
                       打开目录
                     </Button>
                     或
-                    <Button type={'link'} size={'small'} onClick={() => electronApi.openPath(output)}>
+                    <Button type={'link'} size={'small'} onClick={() => shell.openPath(output)}>
                       打开文件
                     </Button>
                   </span>
@@ -85,7 +86,7 @@ export default function MergePage() {
                           type={'text'}
                           size={'small'}
                           onClick={async () => {
-                            const folder = await electronApi.showOpenDialog({
+                            const folder = await dialog.showOpenDialog({
                               properties: ['openDirectory', 'createDirectory'],
                             })
                             if (!folder.canceled) {
@@ -121,7 +122,7 @@ export default function MergePage() {
           </Form>
           <div
             onClick={async () => {
-              const dir = await electronApi.showOpenDialog({properties: ['openDirectory']})
+              const dir = await dialog.showOpenDialog({properties: ['openDirectory']})
               if (!dir.canceled) {
                 readDir(dir.filePaths[0])
               }

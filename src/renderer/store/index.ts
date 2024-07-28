@@ -1,11 +1,11 @@
 import {configure} from 'mobx'
 import {create} from 'mobx-persist'
+import {nativeTheme, app} from '@electron/remote'
+
 import {Upload} from './Upload'
 import {Download} from './Download'
 import {TaskStatus} from './AbstractTask'
 import {config} from './Config'
-import store from '../../common/store'
-import electronApi from '../electronApi'
 import {UploadTask} from './task/UploadTask'
 import {DownloadTask} from './task/DownloadTask'
 import {finish} from './Finish'
@@ -49,19 +49,18 @@ hydrate('upload', upload, (window as any).__STATE__?.upload).then(value => {
 
 hydrate('config', config, (window as any).__STATE__?.config).then(async value => {
   if (!value.downloadDir) {
-    value.downloadDir = store.get('downloads')
+    value.downloadDir = app.getPath('downloads')
   }
 
   // 同步软件外观
-  const theme = await electronApi.getTheme()
   if (!value.themeSource) {
-    value.themeSource = theme.themeSource
-  } else if (value.themeSource !== theme.themeSource) {
-    await electronApi.setTheme(value.themeSource)
+    value.themeSource = nativeTheme.themeSource
+  } else if (value.themeSource !== nativeTheme.themeSource) {
+    nativeTheme.themeSource = value.themeSource
   }
 })
 
-hydrate('finish', finish).then(value => {
+hydrate('finish', finish, (window as any).__STATE__?.finish).then(value => {
   value.downloadList = value.downloadList.map(item => new DownloadTask(item))
   value.uploadList = value.uploadList.map(item => new UploadTask(item))
   value.syncList = value.syncList.map(item => new SyncTask(item))

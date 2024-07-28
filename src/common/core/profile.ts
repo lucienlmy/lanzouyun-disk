@@ -1,8 +1,7 @@
 import * as http from '../http'
 import cheerio from 'cheerio'
 import {Matcher} from './matcher'
-import type {Config} from '../../renderer/store/Config'
-import store from '../store'
+import {config, Config} from '../../renderer/store/Config'
 
 enum PROFILE_EL {
   个性域名 = '个性域名', // domain
@@ -49,6 +48,6 @@ export async function profile() {
   return {
     ...profiles,
     more: ajaxData,
-    referer: new URL(iframe, store.get('lanzouUrl')).href,
+    referer: new URL(iframe, config.lanzouUrl).href,
   }
 }

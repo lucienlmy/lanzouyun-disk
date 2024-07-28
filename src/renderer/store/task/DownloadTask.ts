@@ -1,6 +1,11 @@
+import {makeObservable, observable} from 'mobx'
+import path from 'path'
+import {Request} from 'got'
+import fs from 'fs-extra'
+import {shell} from '@electron/remote'
+
 import {TaskStatus} from '../AbstractTask'
 import {lsShare, URLType} from '../../../common/core/ls'
-import {makeObservable, observable} from 'mobx'
 import {BaseTask} from './BaseTask'
 import {
   delay,
@@ -11,14 +16,10 @@ import {
   sizeToByte,
   streamToText,
 } from '../../../common/util'
-import path from 'path'
 import {fileDownUrl, pwdFileDownUrl} from '../../../common/core/download'
-import {Request} from 'got'
 import * as http from '../../../common/http'
 import {Matcher} from '../../../common/core/matcher'
-import fs from 'fs-extra'
 import {merge} from '../../../common/merge'
-import electronApi from '../../electronApi'
 
 export interface DownloadSubTask {
   url: string
@@ -99,7 +100,7 @@ export class DownloadTask implements BaseTask {
           throw new Error('取消重新下载')
         }
 
-        await electronApi.trashItem(name)
+        await shell.trashItem(name)
       }
     }
   }

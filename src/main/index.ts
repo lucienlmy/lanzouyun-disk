@@ -1,72 +1,88 @@
-import {app, BrowserWindow} from 'electron'
+import is from 'electron-is'
+import {app, Menu, nativeImage, session, Tray} from 'electron'
+import {initialize} from '@electron/remote/main'
 import path from 'path'
-import isDev from 'electron-is-dev'
-import store from '../common/store'
-import config from '../project.config'
-import {Application} from './application'
-import {IpcExtension} from './extensions/ipc'
-import {MenuExtension} from './extensions/menu'
-import {ThemeExtension} from './extensions/theme'
-import process from 'node:process'
 
-const loadURL = isDev ? 'http://localhost:3000' : `file://${path.join(__dirname, '..', 'index.html')}`
+import {safeUserAgent} from './util'
+import AppWindow from './AppWindow'
 
-class App extends Application {
-  constructor() {
-    super()
-  }
+initialize()
 
-  async ready() {
-    store.set('isDev', isDev)
-    if (!store.get('downloads')) {
-      store.set('downloads', app.getPath('downloads'))
-    }
-    this.createWindow()
-  }
+const isDev = is.dev()
 
-  async windowReady(win: Electron.BrowserWindow) {
-    const cookie = store.get('cookies', [])?.find(value => value.name === 'phpdisk_info')
-    if (cookie) {
-      await this.loadMain(win)
-    } else {
-      await this.clearAuth()
-      await this.loadAuth(win)
-    }
-  }
+let main: AppWindow
 
-  async onLogin(win, detail) {
-    await this.loadMain(win)
-  }
+if (!isDev && !app.requestSingleInstanceLock()) {
+  app.quit()
+}
 
-  async onLogout(win: Electron.CrossProcessExports.BrowserWindow) {
-    await this.loadAuth(win)
-  }
+app.on('ready', () => {
+  initUA()
 
-  async loadMain(win: BrowserWindow) {
-    await win.loadURL(loadURL)
-    if (isDev) {
-      win.webContents.openDevTools({mode: 'bottom'})
-    }
-  }
+  createWindow()
+  initTray()
+  initEvents()
 
-  async loadAuth(win: BrowserWindow) {
-    let lanzouUrl: string
-    await win.loadURL(config.rootUrl + config.page.login).catch(reason => {
-      if (typeof reason === 'object' && reason.code === 'ERR_ABORTED') {
-        lanzouUrl = new URL(reason.url).origin
-      }
-    })
-    await new Promise<void>(resolve => process.nextTick(() => resolve()))
-    await win.webContents.insertCSS('*{visibility:hidden}.p1{visibility:visible}.p1 *{visibility:inherit}')
-    if (!lanzouUrl) {
-      lanzouUrl = new URL(win.webContents.getURL()).origin
-    }
-    console.log('lanzouUrl', lanzouUrl)
-    this.initSession(lanzouUrl)
+  load()
+})
+
+function initUA() {
+  const ua = session.defaultSession.getUserAgent()
+  const userAgent = safeUserAgent(ua)
+  session.defaultSession.setUserAgent(userAgent)
+}
+
+function initTray() {
+  if (!is.macOS()) {
+    const icon = isDev
+      ? path.join(__dirname, '..', '..', '..', 'public', 'icon.png')
+      : path.join(__dirname, '..', 'icon.png')
+    const image = nativeImage.createFromPath(icon)
+    const tray = new Tray(image)
+    tray.setToolTip('蓝奏云盘')
+
+    const contextMenu = Menu.buildFromTemplate([
+      // {label: '显示蓝奏云盘', click: this.showWindow},
+      {label: '显示蓝奏云盘', click: main.showWindow},
+      {label: '退出', click: () => app.quit()},
+    ])
+    tray.on('click', main.showWindow)
+    tray.setContextMenu(contextMenu)
   }
 }
 
-const electronApp = new App()
-electronApp.install(new IpcExtension())
-electronApp.install(new MenuExtension())
-electronApp.install(new ThemeExtension())
+function initEvents() {
+  if (is.production()) {
+    // 与单一实例锁关联
+    app.on('second-instance', main.showWindow)
+  }
+  app.on('activate', () => {
+    if (!main) {
+      createWindow()
+    } else if (!main.win.isVisible()) {
+      main.win.show()
+    }
+  })
+  app.on('before-quit', () => {
+    if (main) {
+      main.closeable = true
+    }
+  })
+}
+
+function createWindow() {
+  if (main && !main.win?.isDestroyed()) {
+    main.destroy()
+  }
+
+  main = new AppWindow()
+  return main
+}
+
+const loadURL = isDev ? 'http://localhost:3000' : `file://${path.join(__dirname, '..', 'index.html')}`
+async function load() {
+  await main.win.loadURL(loadURL)
+  if (isDev) {
+    main.win.webContents.openDevTools({mode: 'bottom'})
+  }
+}

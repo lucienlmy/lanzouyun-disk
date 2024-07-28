@@ -2,11 +2,12 @@ import EventEmitter from 'events'
 import fs from 'fs-extra'
 import path from 'path'
 import {makeObservable, observable} from 'mobx'
+import {shell} from '@electron/remote'
+
 import Task, {TaskStatus} from './AbstractTask'
 import {download, upload} from './index'
 import {UploadLinkTask} from './task/UploadLinkTask'
 import {SyncTask} from './task/SyncTask'
-import electronApi from '../electronApi'
 import {finish} from './Finish'
 
 export class Sync extends EventEmitter implements Task<SyncTask> {
@@ -55,7 +56,7 @@ export class Sync extends EventEmitter implements Task<SyncTask> {
         this.list = this.list.filter(value => value.uid !== task.uid)
         finish.syncList.push(task)
         if (task.trashOnFinish) {
-          await electronApi.trashItem(path.join(task.download.dir, task.download.name))
+          await shell.trashItem(path.join(task.download.dir, task.download.name))
         }
       }
     })

@@ -1,13 +1,15 @@
 import React from 'react'
 import {Button, Checkbox, Col, Form, Input, InputNumber, Modal, Radio, Row, Space, Typography} from 'antd'
 import {observer} from 'mobx-react'
+import {dialog, nativeTheme, shell} from '@electron/remote'
+
 import {MyScrollView} from '../component/ScrollView'
 import {config} from '../store/Config'
-import electronApi from '../electronApi'
 import {download, upload} from '../store'
 import {TaskStatus} from '../store/AbstractTask'
 import {calculate} from '../store/Calculate'
 import {byteToSize} from '../../common/util'
+import {logout} from '../utils/app'
 
 const Setting = observer(() => {
   return (
@@ -23,8 +25,11 @@ const Setting = observer(() => {
           <Radio.Group
             defaultValue={config.themeSource}
             onChange={async e => {
-              const theme = await electronApi.setTheme(e.target.value)
-              config.themeSource = theme.themeSource
+              const theme = e.target.value
+              if (nativeTheme.themeSource !== theme) {
+                nativeTheme.themeSource = theme
+              }
+              config.themeSource = nativeTheme.themeSource
             }}
           >
             <Radio.Button value={'light'}>浅色</Radio.Button>
@@ -38,7 +43,7 @@ const Setting = observer(() => {
               <SelectDownloadDir />
             </Col>
             <Col>
-              <Button type={'link'} onClick={() => electronApi.openPath(config.downloadDir)}>
+              <Button type={'link'} onClick={() => shell.openPath(config.downloadDir)}>
                 打开
               </Button>
             </Col>
@@ -87,26 +92,37 @@ const Setting = observer(() => {
             <span>今日流量 {byteToSize(calculate.getRecordSize())}</span>
           </Space>
         </Form.Item>
-        <Form.Item label={'最后登录'} style={{marginTop: 70}}>
-          {config.lastLogin}
-        </Form.Item>
-        <Form.Item label={'账号'}>
-          <Button
-            onClick={() => {
-              if ([download.list, upload.list].some(value => value.some(task => task.status === TaskStatus.pending))) {
-                Modal.confirm({
-                  content: '有正在上传/下载的任务，是否继续退出？',
-                  okText: '退出',
-                  onOk: () => electronApi.logout(),
-                })
-              } else {
-                electronApi.logout()
-              }
-            }}
-          >
-            退出登录
-          </Button>
-        </Form.Item>
+        {config.isComplete && (
+          <>
+            <Form.Item label={'最后登录'} style={{marginTop: 70}}>
+              {config.lastLogin}
+            </Form.Item>
+            <Form.Item label={'账号'}>
+              <Button
+                onClick={() => {
+                  if (
+                    [download.list, upload.list].some(value => value.some(task => task.status === TaskStatus.pending))
+                  ) {
+                    Modal.confirm({
+                      content: '有正在上传/下载的任务，是否继续退出？',
+                      okText: '退出',
+                      onOk: () => logout(),
+                    })
+                  } else {
+                    Modal.confirm({
+                      content: '确认退出？',
+                      okText: '退出',
+                      onOk: () => logout(),
+                    })
+                  }
+                }}
+              >
+                退出登录
+              </Button>
+            </Form.Item>
+          </>
+        )}
+
         {/*<Form.Item label={'关于'} style={{marginTop: 60}}>
           <Space direction={'vertical'}>
             <span>蓝奏云盘</span>
@@ -131,7 +147,7 @@ export const SelectDownloadDir = observer(() => (
         <Button
           type={'link'}
           onClick={async () => {
-            const value = await electronApi.showOpenDialog({properties: ['openDirectory', 'createDirectory']})
+            const value = await dialog.showOpenDialog({properties: ['openDirectory', 'createDirectory']})
             if (!value.canceled) {
               config.downloadDir = value.filePaths[0]
             }

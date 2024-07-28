@@ -1,10 +1,11 @@
 import got from 'got'
-import {cookieJar, shareCookieJar} from './cookie'
-import store from './store'
-import {delay} from './util'
-import electronApi from '../renderer/electronApi'
 import {message} from 'antd'
+import is from 'electron-is'
+
+import {cookieJar, shareCookieJar} from './cookie'
+import {delay} from './util'
 import {config} from '../renderer/store/Config'
+import {logout} from '../renderer/utils/app'
 
 const base = got.extend({
   headers: {
@@ -13,16 +14,14 @@ const base = got.extend({
     'sec-fetch-dest': 'empty',
     'sec-fetch-mode': 'cors',
     'sec-fetch-site': 'same-origin',
-    // referer: 'https://pc.woozooo.com/mydisk.php?item=files&action=index',
-    // referer: 'https://pc.woozooo.com/mydisk.php?item=files&action=index&u=1702063',
-    'user-agent': store.get('userAgent'),
+    // referer: 'https://up.woozooo.com/mydisk.php?item=files&action=index&u=1702063',
   },
   hooks: {
-    // beforeRequest: [
-    //   options => {
-    //     console.log(options.url.toString(), options)
-    //   },
-    // ],
+    init: [
+      (_, self) => {
+        self.headers['user-agent'] = config.userAgent
+      },
+    ],
     afterResponse: [
       async response => {
         // 返回值状态判断。 蓝奏云返回类型: text/json，github 返回类型: application/json
@@ -36,7 +35,7 @@ const base = got.extend({
             case 9:
               message.error('登录信息失效，请重新登录')
               await delay()
-              await electronApi.logout()
+              await logout()
               return response
             default:
               throw new Error(typeof body.info === 'string' ? body.info : body.text)
@@ -48,6 +47,7 @@ const base = got.extend({
     beforeError: [
       error => {
         // todo: 记录
+        console.log('error, url:', error.options.url.toString())
         console.error(error)
         if (!error.options?.context?.hideMessage) {
           message.error(error.message)
@@ -57,7 +57,7 @@ const base = got.extend({
     ],
   },
   https: {rejectUnauthorized: false},
-  ...(store.get('isDev')
+  ...(is.dev()
     ? {
         // // 开发用
         // agent: {
@@ -77,8 +77,14 @@ const base = got.extend({
 
 export const request = got.extend(base, {
   cookieJar,
-  prefixUrl: store.get('lanzouUrl'),
   hooks: {
+    init: [
+      (_, self) => {
+        if (!self.prefixUrl) {
+          self.prefixUrl = config.lanzouUrl
+        }
+      },
+    ],
     beforeRequest: [
       options => {
         if (config.referer && (!options.headers['referer'] || !options.headers['Referer'])) {

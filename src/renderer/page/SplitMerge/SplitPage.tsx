@@ -1,17 +1,18 @@
 import React, {useCallback, useEffect, useState} from 'react'
 import {Button, Col, Form, Input, InputNumber, message, Row, Select, Table, Upload} from 'antd'
-import {config} from '../../store/Config'
+import debounce from 'lodash.debounce'
+import fs from 'fs-extra'
+import {dialog, shell} from '@electron/remote'
 import {InboxOutlined} from '@ant-design/icons'
+import path from 'path'
+
+import {config} from '../../store/Config'
 import {byteToSize, getSuffix} from '../../../common/util'
 import {MyScrollView} from '../../component/ScrollView'
 import {splitTask} from '../../../common/split'
 import {useLoading} from '../../hook/useLoading'
-import path from 'path'
 import projectConfig, {supportList} from '../../../project.config'
-import electronApi from '../../electronApi'
-import debounce from 'lodash.debounce'
 import {split} from '../../../common/merge'
-import fs from 'fs-extra'
 
 const leftList = supportList.filter(value => !projectConfig.safeSuffixList.includes(value))
 
@@ -77,7 +78,7 @@ export default function SplitPage() {
                   message.success(
                     <span>
                       分割完成
-                      <Button type={'link'} size={'small'} onClick={() => electronApi.showItemInFolder(output)}>
+                      <Button type={'link'} size={'small'} onClick={() => shell.showItemInFolder(output)}>
                         打开目录
                       </Button>
                     </span>
@@ -101,7 +102,7 @@ export default function SplitPage() {
                             type={'text'}
                             size={'small'}
                             onClick={async () => {
-                              const folder = await electronApi.showOpenDialog({
+                              const folder = await dialog.showOpenDialog({
                                 properties: ['openDirectory', 'createDirectory'],
                               })
                               if (!folder.canceled) {
