@@ -1,3 +1,3 @@
 interface Window {
-  skipCheck: boolean
+  __DEV__: boolean
 }

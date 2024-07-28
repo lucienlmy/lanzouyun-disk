@@ -1,4 +1,6 @@
 type IconName =
+  | 'submit-arrow'
+  | 'wangpan'
   | 'description'
   | 'move'
   | 'github'
@@ -15,7 +17,7 @@ type IconName =
   | 'cad'
   | 'exe'
   | 'apk'
-  | 'clear' //
+  | 'clear'
   | 'split'
   | 'open-folder'
   | 'pause'

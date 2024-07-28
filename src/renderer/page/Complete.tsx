@@ -14,7 +14,7 @@ import {taskLength} from '../utils/task'
 const Complete = observer(() => {
   return (
     <Tabs tabPosition={'left'} tabBarStyle={{paddingTop: 46, minWidth: 110}}>
-      <Tabs.TabPane tab={`下载${taskLength(finish.downloadList)}`} key={'1'}>
+      <Tabs.TabPane tab={`下载${taskLength(finish.downloadList)}`} key={'1'} className={'!pl-0'}>
         <MyScrollView
           HeaderComponent={
             <MyHeader>
@@ -70,7 +70,7 @@ const Complete = observer(() => {
           />
         </MyScrollView>
       </Tabs.TabPane>
-      <Tabs.TabPane tab={`上传${taskLength(finish.uploadList)}`} key={'2'}>
+      <Tabs.TabPane tab={`上传${taskLength(finish.uploadList)}`} key={'2'} className={'!pl-0'}>
         <MyScrollView
           HeaderComponent={
             <MyHeader>
@@ -122,7 +122,7 @@ const Complete = observer(() => {
           />
         </MyScrollView>
       </Tabs.TabPane>
-      <Tabs.TabPane tab={`同步${taskLength(finish.syncList)}`} key={'3'}>
+      <Tabs.TabPane tab={`同步${taskLength(finish.syncList)}`} key={'3'} className={'!pl-0'}>
         <MyScrollView
           HeaderComponent={
             <MyHeader>

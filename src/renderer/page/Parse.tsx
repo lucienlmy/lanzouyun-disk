@@ -30,7 +30,8 @@ export default function Parse() {
     }
   }, [merge, selectedRows.length])
 
-  const parse = async () => {
+  const parse = async (event?: any) => {
+    event?.preventDefault()
     try {
       const rows = parseForm(urlForm)
       if (!rows.length) return

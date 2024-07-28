@@ -16,6 +16,8 @@ export class Config {
   // *** 网络配置 start ***
   @persist('list') cookies: Electron.Cookie[] = []
   @persist domain = '' // https://wwn.lanzouf.com
+
+  // 解决文件上传问题
   @persist referer = ''
   @persist lastLogin = '' // "2022-04-23 21:03:29"
   // @persist('list') supportList: string[] = [] // ['tar']

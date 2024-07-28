@@ -15,7 +15,7 @@ export default class AppWindow {
     this.win = new BrowserWindow({
       width: 1400,
       height: 900,
-      autoHideMenuBar: true,
+      show: false,
       webPreferences: {
         webviewTag: true,
         // preload: path.resolve(__dirname, 'preload.js'),
@@ -27,6 +27,7 @@ export default class AppWindow {
 
     enable(this.win.webContents)
 
+    this.win.on('ready-to-show', () => this.win.show())
     this.win.on('closed', () => (this.win = null))
     this.win.on('close', event => {
       if (!this.closeable) {

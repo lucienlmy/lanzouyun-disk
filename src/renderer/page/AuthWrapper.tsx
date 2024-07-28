@@ -14,9 +14,12 @@ const AuthWrapper = observer<React.FC<PropsWithChildren<any>>>(props => {
   if (isLogin) return <Loading />
 
   return (
-    <div>
-      {/* todo: 美化样式 */}
-      <Button onClick={login}>登录</Button>
+    <div className={'flex flex-row h-full justify-center items-center'}>
+      <MyIcon iconName={'wangpan'} className={'text-6xl'} />
+      <Button size={'large'} type={'primary'} onClick={login} className={'m-5 mr-10'}>
+        账号登录
+        <MyIcon iconName={'submit-arrow'} className={'text-2xl -mr-1'} />
+      </Button>
     </div>
   )
 })

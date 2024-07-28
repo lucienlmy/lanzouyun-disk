@@ -8,5 +8,3 @@ export function safeUserAgent(userAgent: string) {
     .map(value => value[0])
     .join(' ')
 }
-
-export const isMacOS = process.platform === 'darwin'

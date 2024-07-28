@@ -1,26 +1,31 @@
-import React from 'react'
+import React, {useEffect, useState} from 'react'
 import {Button, Checkbox, Col, Form, Input, InputNumber, Modal, Radio, Row, Space, Typography} from 'antd'
 import {observer} from 'mobx-react'
-import {dialog, nativeTheme, shell} from '@electron/remote'
+import {dialog, getCurrentWindow, nativeTheme, shell} from '@electron/remote'
 
 import {MyScrollView} from '../component/ScrollView'
 import {config} from '../store/Config'
-import {download, upload} from '../store'
+import {upload} from '../store'
 import {TaskStatus} from '../store/AbstractTask'
 import {calculate} from '../store/Calculate'
 import {byteToSize} from '../../common/util'
 import {logout} from '../utils/app'
 
 const Setting = observer(() => {
+  const [debug, setDebug] = useState(!!window.__DEV__)
+  useEffect(() => {
+    window.__DEV__ = debug
+  }, [debug])
+
   return (
-    <MyScrollView style={{paddingTop: 60, paddingLeft: 30}}>
-      <Form labelAlign={'left'} colon={false} labelCol={{flex: '100px', style: {fontWeight: 'bold'}}}>
+    <MyScrollView className={'pt-[60px] pl-[30px]'}>
+      <Form labelAlign={'left'} colon={false} labelCol={{flex: '110px', style: {fontWeight: 'bold'}}}>
         {/*todo:*/}
-        <Form.Item label={'统计'}>
+        {/*<Form.Item label={'统计'}>
           <Button title={'暂未开放'} type={'link'} disabled>
             查看
           </Button>
-        </Form.Item>
+        </Form.Item>*/}
         <Form.Item label={'外观'}>
           <Radio.Group
             defaultValue={config.themeSource}
@@ -92,6 +97,17 @@ const Setting = observer(() => {
             <span>今日流量 {byteToSize(calculate.getRecordSize())}</span>
           </Space>
         </Form.Item>
+        <Form.Item label={'开发模式'}>
+          <Checkbox checked={debug} onChange={e => setDebug(e.target.checked)} />
+        </Form.Item>
+        {debug && (
+          <>
+            <Form.Item label={'控制台'}>
+              <Button onClick={() => getCurrentWindow().webContents.toggleDevTools()}>切换</Button>
+            </Form.Item>
+          </>
+        )}
+
         {config.isComplete && (
           <>
             <Form.Item label={'最后登录'} style={{marginTop: 70}}>
@@ -100,13 +116,14 @@ const Setting = observer(() => {
             <Form.Item label={'账号'}>
               <Button
                 onClick={() => {
-                  if (
-                    [download.list, upload.list].some(value => value.some(task => task.status === TaskStatus.pending))
-                  ) {
+                  if ([upload.list].some(value => value.some(task => task.status === TaskStatus.pending))) {
                     Modal.confirm({
-                      content: '有正在上传/下载的任务，是否继续退出？',
+                      content: '有正在上传的任务，是否继续退出？',
                       okText: '退出',
-                      onOk: () => logout(),
+                      onOk: () => {
+                        upload.pauseAll()
+                        return logout()
+                      },
                     })
                   } else {
                     Modal.confirm({

@@ -47,8 +47,8 @@ const App = observer(() => {
 
   return (
     <Layout>
-      <Layout.Sider theme={'light'}>
-        <div style={{display: 'flex', flexDirection: 'column', height: '100%'}}>
+      <Layout.Sider theme={'light'} className={'h-screen'}>
+        <div className={'flex flex-col flex-1 h-full overflow-y-auto'}>
           <div style={{flex: 1}}>
             <div className='logo' style={{height: 46}} />
             <Menu
@@ -66,14 +66,14 @@ const App = observer(() => {
                         title={'去 GitHub 点亮 star'}
                         onClick={() => shell.openExternal('https://github.com/chenhb23/lanzouyun-disk')}
                       >
-                        <MyIcon iconName={'github'} style={{fontSize: 14}} /> v{pkg.version}
+                        <MyIcon iconName={'github'} style={{fontSize: 14}} className={'mr-1'} /> v{pkg.version}
                       </Touchable>
                       {!!latestVersion && (
                         <Touchable
                           onClick={() => shell.openExternal(latestVersion.html_url)}
                           title={latestVersion.body}
                         >
-                          （最新: {latestVersion.tag_name}）
+                          (最新: {latestVersion.tag_name})
                         </Touchable>
                       )}
                     </>
@@ -123,7 +123,7 @@ const App = observer(() => {
               ]}
             />
           </div>
-          <div style={{padding: '30px 24px'}}></div>
+          <div className={'p-1'}></div>
         </div>
       </Layout.Sider>
       <Layout>

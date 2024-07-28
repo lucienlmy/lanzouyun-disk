@@ -6,6 +6,20 @@
   "description": "",
   "glyphs": [
     {
+      "icon_id": "908602",
+      "name": "登录提交",
+      "font_class": "submit-arrow",
+      "unicode": "e6b0",
+      "unicode_decimal": 59056
+    },
+    {
+      "icon_id": "22797489",
+      "name": "网盘",
+      "font_class": "wangpan",
+      "unicode": "e67b",
+      "unicode_decimal": 59003
+    },
+    {
       "icon_id": "2743884",
       "name": "描述",
       "font_class": "description",

@@ -38,7 +38,7 @@ import {
   Upload,
 } from 'antd'
 
-import {CloudUploadOutlined, RightOutlined} from '@ant-design/icons'
+import {CloudUploadOutlined} from '@ant-design/icons'
 import {getDownloadDir} from '../Setting'
 import {FileDescModal} from './FileDescModal'
 import {SetAccessModal} from './SetAccessModal'
@@ -194,7 +194,7 @@ export default function Files() {
         event.preventDefault()
 
         // 移动文件，不展示上传文件的 layer
-        if (move.current) return
+        if (move.current?.length) return
 
         if (!uploadMaskVisible) {
           setUploadMaskVisible(true)
@@ -207,6 +207,7 @@ export default function Files() {
           <MyHeader
             right={
               <Input
+                className={'ml-2'}
                 allowClear
                 placeholder={'搜索当前页面'}
                 value={search}
@@ -315,9 +316,9 @@ export default function Files() {
             </Space>
           </MyHeader>
           <MyBar>
-            <Breadcrumb separator={<RightOutlined />}>
-              {crumbs.map((value, index) => (
-                <Breadcrumb.Item key={value.folderid} href={'#'} onClick={() => lsNextFolder(value.folderid)}>
+            <Breadcrumb
+              items={crumbs.map((value, index) => ({
+                title: (
                   <span
                     onDrop={event => {
                       event.preventDefault()
@@ -331,9 +332,11 @@ export default function Files() {
                   >
                     {value.name}
                   </span>
-                </Breadcrumb.Item>
-              ))}
-            </Breadcrumb>
+                ),
+                href: '#',
+                onClick: () => lsNextFolder(value.folderid),
+              }))}
+            />
           </MyBar>
         </>
       }
@@ -428,9 +431,9 @@ export default function Files() {
                       }}
                     >
                       {item.type === URLType.folder ? (
-                        <MyIcon iconName={'folder'} className={'mr-1'} />
+                        <MyIcon iconName={'folder'} className={'mr-1 text-lg'} />
                       ) : (
-                        <MyIcon iconName={item.icon} defaultIcon={'file'} className={'mr-1'} />
+                        <MyIcon iconName={item.icon} defaultIcon={'file'} className={'mr-1 text-lg'} />
                       )}
                       <Space size={3}>
                         {item.name}
