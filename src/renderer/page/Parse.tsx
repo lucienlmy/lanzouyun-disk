@@ -10,6 +10,7 @@ import {download} from '../store'
 import {isFile} from '../../common/util'
 import {Button, Checkbox, Col, Input, message, Row, Table} from 'antd'
 import {DownloadTask} from '../store/task/DownloadTask'
+import SizeBox from '../component/SizeBox'
 
 export default function Parse() {
   const [shareFiles, setShareFiles] = useState<LsShareObject[]>([])
@@ -56,6 +57,7 @@ export default function Parse() {
 
   return (
     <MyScrollView
+      scroll={false}
       HeaderComponent={
         <>
           <MyHeader>
@@ -161,72 +163,79 @@ export default function Parse() {
         </>
       }
     >
-      <Table
-        pagination={false}
-        size={'small'}
-        // rowKey={'url'}
-        rowKey={record => record.url}
-        sticky
-        dataSource={list}
-        onRow={record => ({
-          onClick: () => {
-            setSelectedRows(prev =>
-              prev.some(value => value.url === record.url)
-                ? prev.filter(value => value.url !== record.url)
-                : [...prev, record]
-            )
-          },
-        })}
-        rowSelection={{
-          selectedRowKeys: selectedRows.map(value => value.url),
-          onChange: (selectedRowKeys, selectedRows) => setSelectedRows(selectedRows),
-        }}
-        columns={[
-          {
-            title: '文件名',
-            render: (_, item) => {
-              const extname = path.extname(item.name).replace(/^\./, '')
-              return (
-                <>
-                  <MyIcon iconName={extname} defaultIcon={'file'} />
-                  <span>{item.name}</span>
-                </>
-              )
-            },
-          },
-          {title: '时间', width: 160, dataIndex: 'time'},
-          {title: '大小', width: 160, dataIndex: 'size'},
-          {
-            title: '操作',
-            width: 100,
-            render: (_, item) => (
-              <Button
-                size={'small'}
-                type={'text'}
-                icon={<MyIcon iconName={'download'} />}
-                onClick={async event => {
-                  event.stopPropagation()
-                  await download.addTasks([
-                    // {
-                    //   name: item.name,
-                    //   url: item.url,
-                    //   pwd: item.pwd,
-                    //   merge: false,
-                    // },
-                    new DownloadTask({
-                      name: item.name,
-                      url: item.url,
-                      pwd: item.pwd,
-                      merge: false,
-                    }),
-                  ])
-                  await message.success('已添加到下载列表')
-                }}
-              />
-            ),
-          },
-        ]}
-      />
+      <SizeBox>
+        {size => (
+          <Table
+            virtual
+            scroll={{x: size.width, y: size.height - 39}}
+            sticky
+            pagination={false}
+            size={'small'}
+            // rowKey={'url'}
+            rowKey={record => record.url}
+            dataSource={list}
+            onRow={record => ({
+              onClick: () => {
+                setSelectedRows(prev =>
+                  prev.some(value => value.url === record.url)
+                    ? prev.filter(value => value.url !== record.url)
+                    : [...prev, record]
+                )
+              },
+            })}
+            rowSelection={{
+              columnWidth: 64,
+              selectedRowKeys: selectedRows.map(value => value.url),
+              onChange: (selectedRowKeys, selectedRows) => setSelectedRows(selectedRows),
+            }}
+            columns={[
+              {
+                title: '文件名',
+                render: (_, item) => {
+                  const extname = path.extname(item.name).replace(/^\./, '')
+                  return (
+                    <>
+                      <MyIcon iconName={extname} defaultIcon={'file'} />
+                      <span>{item.name}</span>
+                    </>
+                  )
+                },
+              },
+              {title: '时间', width: 160, dataIndex: 'time'},
+              {title: '大小', width: 160, dataIndex: 'size'},
+              {
+                title: '操作',
+                width: 100,
+                render: (_, item) => (
+                  <Button
+                    size={'small'}
+                    type={'text'}
+                    icon={<MyIcon iconName={'download'} />}
+                    onClick={async event => {
+                      event.stopPropagation()
+                      await download.addTasks([
+                        // {
+                        //   name: item.name,
+                        //   url: item.url,
+                        //   pwd: item.pwd,
+                        //   merge: false,
+                        // },
+                        new DownloadTask({
+                          name: item.name,
+                          url: item.url,
+                          pwd: item.pwd,
+                          merge: false,
+                        }),
+                      ])
+                      await message.success('已添加到下载列表')
+                    }}
+                  />
+                ),
+              },
+            ]}
+          />
+        )}
+      </SizeBox>
     </MyScrollView>
   )
 }
