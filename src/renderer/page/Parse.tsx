@@ -31,10 +31,9 @@ export default function Parse() {
     }
   }, [merge, selectedRows.length])
 
-  const parse = async (event?: any) => {
-    event?.preventDefault()
+  const parse = async (form: typeof urlForm) => {
     try {
-      const rows = parseForm(urlForm)
+      const rows = parseForm(form)
       if (!rows.length) return
 
       // const value = await listener(lsShare(urlForm), 'lsShare')
@@ -68,7 +67,10 @@ export default function Parse() {
                   autoSize={{minRows: 1, maxRows: 6}}
                   allowClear
                   value={urlForm.url}
-                  onPressEnter={parse}
+                  onPressEnter={event => {
+                    event.preventDefault()
+                    parse(urlForm)
+                  }}
                   placeholder='* https://...  可同时解析多行'
                   onChange={event => setUrlForm(prevState => ({...prevState, url: event.target.value}))}
                 />
@@ -77,7 +79,10 @@ export default function Parse() {
                 <Input
                   allowClear
                   value={urlForm.pwd}
-                  onPressEnter={parse}
+                  onPressEnter={event => {
+                    event.preventDefault()
+                    parse(urlForm)
+                  }}
                   onChange={event => setUrlForm(prevState => ({...prevState, pwd: event.target.value}))}
                   placeholder='提取密码，选填'
                 />
@@ -87,13 +92,22 @@ export default function Parse() {
                   // style={{minWidth: 100}}
                   type={'primary'}
                   loading={loading['lsShare']}
-                  onClick={() => {
-                    if (!urlForm.url) return message.info('请输入url')
+                  onClick={async event => {
+                    const nextForm = {...urlForm}
+                    if (!nextForm.url) {
+                      // 检查粘贴板是否符合 URL 格式
+                      const clipboardText = await navigator.clipboard.readText()
+                      if (!/https?:\/\//.test(clipboardText)) {
+                        return message.info('请输入url')
+                      }
+                      nextForm.url = clipboardText
+                      setUrlForm(nextForm)
+                    }
 
-                    parse()
+                    parse(nextForm)
                   }}
                 >
-                  解析
+                  {!urlForm.url ? '粘贴并解析' : '解析'}
                 </Button>
               </Col>
               <Col>
