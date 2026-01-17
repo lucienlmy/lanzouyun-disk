@@ -138,7 +138,12 @@ export default function Files() {
 
   useEffect(() => {
     // 防抖，防止并发查询时，目录刷新不正确
-    const refresh = debounce(() => listFile(currentFolder.folderid), 500)
+    const refresh = debounce((task: UploadTask) => {
+      // 只有当上传文件所在的文件夹 ID 和当前页面的文件 ID 相等时才刷新页面
+      if (task.folderId === currentFolder.folderid) {
+        listFile(currentFolder.folderid)
+      }
+    }, 1000)
     upload.on('finish', refresh)
     return () => {
       upload.removeListener('finish', refresh)
