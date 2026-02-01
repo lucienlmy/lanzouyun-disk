@@ -28,14 +28,18 @@
     "copyright": "更多内容到 https://github.com/chenhb23/lanzouyun-disk",
     "appId": "org.chenhb23.lanzou",
     "asar": true,
+    "publish": [
+      {
+        "provider": "github",
+        "owner": "chenhb23",
+        "repo": "lanzouyun-disk"
+      }
+    ],
     "files": [
       "build"
     ],
     "extends": null,
     "mac": {
-      "category": "org.chenhb23.lanzou.client",
-      "artifactName": "lanzouyun-${version}-${arch}-${os}.${ext}",
-      "identity": null,
       "target": {
         "target": "dmg",
         "arch": [
@@ -45,13 +49,7 @@
       }
     },
     "win": {
-      "artifactName": "lanzouyun-${version}-${arch}-${os}.${ext}",
-      "target": {
-        "target": "zip",
-        "arch": [
-          "x64"
-        ]
-      }
+      "target": "nsis"
     }
   }
 }

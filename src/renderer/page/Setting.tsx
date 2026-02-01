@@ -1,7 +1,8 @@
 import React, {useEffect, useState} from 'react'
-import {Button, Checkbox, Col, Form, Input, InputNumber, Modal, Radio, Row, Space, Typography} from 'antd'
+import {Button, Checkbox, Col, Form, Input, InputNumber, Modal, Radio, Row, Space, Typography, message} from 'antd'
 import {observer} from 'mobx-react'
 import {dialog, getCurrentWindow, nativeTheme, shell} from '@electron/remote'
+import {ipcRenderer} from 'electron'
 
 import {MyScrollView} from '../component/ScrollView'
 import {config} from '../store/Config'
@@ -10,16 +11,41 @@ import {TaskStatus} from '../store/AbstractTask'
 import {calculate} from '../store/Calculate'
 import {byteToSize} from '../../common/util'
 import {logout} from '../utils/app'
+import pkg from '../../../package.json'
 
 const Setting = observer(() => {
   const [debug, setDebug] = useState(!!window.__DEV__)
+  const [checkingUpdate, setCheckingUpdate] = useState(false)
+
   useEffect(() => {
     window.__DEV__ = debug
   }, [debug])
 
+  const handleCheckUpdate = async () => {
+    setCheckingUpdate(true)
+    try {
+      // 发送IPC消息给主进程，调用主进程的检查更新方法
+      ipcRenderer.send('check-update')
+      message.info('正在检查更新，请稍候...')
+    } catch (error) {
+      console.error('检查更新失败:', error)
+      message.error('检查更新失败，请稍后重试')
+    } finally {
+      setCheckingUpdate(false)
+    }
+  }
+
   return (
     <MyScrollView className={'pt-[60px] pl-[30px]'}>
       <Form labelAlign={'left'} colon={false} labelCol={{flex: '110px', style: {fontWeight: 'bold'}}}>
+        <Form.Item label={'版本信息'} style={{marginBottom: 30}}>
+          <Space direction={'vertical'}>
+            <Typography.Text>当前版本: v{pkg.version}</Typography.Text>
+            <Button type='primary' onClick={handleCheckUpdate} loading={checkingUpdate}>
+              检查更新
+            </Button>
+          </Space>
+        </Form.Item>
         {/*todo:*/}
         {/*<Form.Item label={'统计'}>
           <Button title={'暂未开放'} type={'link'} disabled>

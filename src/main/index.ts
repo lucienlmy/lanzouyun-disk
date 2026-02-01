@@ -1,5 +1,5 @@
 import is from 'electron-is'
-import {app, Menu, nativeImage, session, Tray} from 'electron'
+import {app, Menu, nativeImage, session, Tray, ipcMain} from 'electron'
 import {initialize} from '@electron/remote/main'
 import path from 'path'
 
@@ -67,6 +67,11 @@ function initEvents() {
     if (main) {
       main.closeable = true
     }
+  })
+
+  // 监听渲染进程的检查更新请求
+  ipcMain.on('check-update', () => {
+    main.checkForUpdates()
   })
 }
 

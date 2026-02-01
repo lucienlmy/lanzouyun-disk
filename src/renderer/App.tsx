@@ -22,7 +22,6 @@ import {download, upload} from './store'
 import {MyIcon} from './component/Icon'
 import pkg from '../../package.json'
 import project from '../project.config'
-import {useLatestRelease} from './hook/useLatestRelease'
 import {Touchable} from './component/Touchable'
 import Upload from './page/Upload'
 import Files from './page/Files'
@@ -40,7 +39,6 @@ import AuthWrapper from './page/AuthWrapper'
 const App = observer(() => {
   const [activeKey, setActiveKey] = useState('1')
   const [webviewKey, setWebviewKey] = useState(1)
-  const latestVersion = useLatestRelease()
 
   const lanzouUrl = config.lanzouUrl
   const recycleUrl = useMemo(() => (lanzouUrl ? new URL(project.page.recycle, lanzouUrl).href : ''), [lanzouUrl])
@@ -61,22 +59,12 @@ const App = observer(() => {
                 {
                   type: 'group',
                   label: (
-                    <>
-                      <Touchable
-                        title={'去 GitHub 点亮 star'}
-                        onClick={() => shell.openExternal('https://github.com/chenhb23/lanzouyun-disk')}
-                      >
-                        <MyIcon iconName={'github'} style={{fontSize: 14}} className={'mr-1'} /> v{pkg.version}
-                      </Touchable>
-                      {!!latestVersion && (
-                        <Touchable
-                          onClick={() => shell.openExternal(latestVersion.html_url)}
-                          title={latestVersion.body}
-                        >
-                          (最新: {latestVersion.tag_name})
-                        </Touchable>
-                      )}
-                    </>
+                    <Touchable
+                      title={'去 GitHub 点亮 star'}
+                      onClick={() => shell.openExternal('https://github.com/chenhb23/lanzouyun-disk')}
+                    >
+                      <MyIcon iconName={'github'} style={{fontSize: 14}} className={'mr-1'} /> v{pkg.version}
+                    </Touchable>
                   ),
                   children: [
                     {key: '1', label: '全部文件', icon: <FolderOpenOutlined />},

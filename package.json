@@ -30,6 +30,7 @@
     "cheerio": "^1.0.0-rc.12",
     "darkreader": "^4.9.87",
     "electron-is": "^3.0.0",
+    "electron-updater": "^6.1.8",
     "form-data-encoder": "^4.0.2",
     "formdata-node": "^6.0.3",
     "fs-extra": "^11.2.0",

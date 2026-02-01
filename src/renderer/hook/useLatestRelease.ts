@@ -13,19 +13,34 @@ export interface LatestRelease {
 
 export function useLatestRelease() {
   const [latestVersion, setLatestVersion] = useState<LatestRelease>(null)
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  const checkUpdate = async () => {
+    setLoading(true)
+    setError(null)
+    try {
+      const value = await http.share
+        .get('https://api.github.com/repos/chenhb23/lanzouyun-disk/releases/latest')
+        .json<LatestRelease>()
+      if (value && gt(value.tag_name, pkg.version)) {
+        setLatestVersion(value)
+      } else {
+        setLatestVersion(null)
+      }
+    } catch (err) {
+      console.error('检查更新失败:', err)
+      setError('检查更新失败，请稍后重试')
+    } finally {
+      setLoading(false)
+    }
+  }
 
   useEffect(() => {
     if (is.production()) {
-      http.share
-        .get('https://api.github.com/repos/chenhb23/lanzouyun-disk/releases/latest')
-        .json<LatestRelease>()
-        .then(value => {
-          if (value && gt(value.tag_name, pkg.version)) {
-            setLatestVersion(value)
-          }
-        })
+      checkUpdate()
     }
   }, [])
 
-  return latestVersion
+  return {latestVersion, loading, error, checkUpdate}
 }
